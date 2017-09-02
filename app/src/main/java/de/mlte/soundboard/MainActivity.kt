@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val mp = MediaPlayer.create(this, R.raw.tusch)
+        val mp = MediaPlayer.create(this, R.raw.splash)
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
 
         var timer = Timer()
@@ -24,20 +24,27 @@ class MainActivity : AppCompatActivity() {
             progressBar.progress = 0
         }
 
-        val timerTask = timerTask {
-            runOnUiThread {
-                progressBar.progress = mp.currentPosition
-                println(mp.currentPosition)
-            }
-        }
-
         val btn = findViewById<TextView>(R.id.text_view_button)
         btn.setOnClickListener {
-            mp.start()
-            progressBar.max = mp.duration
-            timer.cancel()
-            timer = Timer()
-            timer.schedule(timerTask, 40, 40)
+            if (mp.isPlaying) {
+                mp.stop()
+                mp.prepare()
+                timer.cancel()
+                progressBar.progress = 0
+            } else {
+                progressBar.max = mp.duration
+
+                timer = Timer()
+                val timerTask = timerTask {
+                    runOnUiThread {
+                        progressBar.progress = mp.currentPosition
+                        println(mp.currentPosition)
+                    }
+                }
+                timer.schedule(timerTask, 40, 40)
+
+                mp.start()
+            }
         }
     }
 }
