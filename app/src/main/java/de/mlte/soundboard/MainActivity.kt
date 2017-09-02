@@ -14,36 +14,51 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val mp = MediaPlayer.create(this, R.raw.splash)
+        var player: MediaPlayer? = null
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-
         var timer = Timer()
-
-        mp.setOnCompletionListener {
-            timer.cancel()
-            progressBar.progress = 0
-        }
+        var playing = false
 
         val btn = findViewById<TextView>(R.id.text_view_button)
         btn.setOnClickListener {
-            if (mp.isPlaying) {
-                mp.stop()
-                mp.prepare()
+            if (playing) {
+                player?.let { mp ->
+                    if (mp.isPlaying) {
+                        mp.stop()
+                    }
+                    mp.reset()
+                    mp.release()
+                }
+                playing = false
                 timer.cancel()
                 progressBar.progress = 0
             } else {
+                val mp = MediaPlayer.create(this, R.raw.splash)
+                mp.setOnCompletionListener {
+                    timer.cancel()
+                    progressBar.progress = 0
+                    mp.reset()
+                    mp.release()
+                    playing = false
+                }
+                mp.start()
+                player = mp
+                playing = true
+
                 progressBar.max = mp.duration
+                progressBar.progress = 0
 
                 timer = Timer()
                 val timerTask = timerTask {
                     runOnUiThread {
-                        progressBar.progress = mp.currentPosition
-                        println(mp.currentPosition)
+                        if (playing && mp.isPlaying) {
+                            if (mp.currentPosition > progressBar.progress) {
+                                progressBar.progress = mp.currentPosition
+                            }
+                        }
                     }
                 }
                 timer.schedule(timerTask, 40, 40)
-
-                mp.start()
             }
         }
     }
