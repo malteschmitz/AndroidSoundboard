@@ -12,13 +12,19 @@ import kotlin.concurrent.timerTask
 import android.content.Intent
 import android.R.attr.data
 import android.app.Activity
+import android.content.Context
 import android.net.Uri
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.FileInputStream
 
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        loadPreferences()
 
         var player: MediaPlayer? = null
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
@@ -45,8 +51,9 @@ class MainActivity : AppCompatActivity() {
                 playing = false
                 progressBar.progress = 0
             } else {
-                currentUri?.let { uri ->
-                    val mp = MediaPlayer.create(this, uri)
+                val file = getFileStreamPath("audio.mp3")
+                if (file.exists()) {
+                    val mp = MediaPlayer.create(this, Uri.fromFile(file))
                     mp.setOnCompletionListener {
                         progressBar.progress = 0
                         mp.reset()
@@ -65,7 +72,6 @@ class MainActivity : AppCompatActivity() {
 
         btn.setOnLongClickListener {
             val intent = Intent(baseContext, EditActivity::class.java)
-            intent.putExtra("uri", currentUri)
             intent.putExtra("caption", btn.text)
             startActivityForResult(intent, 1234)
 
@@ -73,7 +79,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    var currentUri: Uri? = null
+    private fun loadPreferences() {
+        val preferences = getPreferences(Context.MODE_PRIVATE)
+        val caption = preferences.getString("caption", "")
+        val btn = findViewById<TextView>(R.id.text_view_button)
+        btn.setText(caption)
+    }
+
+    // var currentUri: Uri? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -84,9 +97,29 @@ class MainActivity : AppCompatActivity() {
             if (caption != null) {
                 btn.setText(caption)
             }
-            currentUri = data.getParcelableExtra<Uri>("uri")
-            if (currentUri != null) {
-                grantUriPermission(getPackageName(), currentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val uri = data.getParcelableExtra<Uri>("uri")
+            savePreferences(caption, uri)
+        }
+    }
+
+    private fun savePreferences(caption: String, uri: Uri?) {
+        val btn = findViewById<TextView>(R.id.text_view_button)
+        val editor = getPreferences(Context.MODE_PRIVATE).edit()
+        editor.commit()
+
+        uri?.let { uri ->
+            grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val output = BufferedOutputStream(openFileOutput("audio.mp3", Context.MODE_PRIVATE))
+            val input = BufferedInputStream(getContentResolver().openInputStream(uri))
+            try {
+                val buf = ByteArray(1024)
+                input.read(buf)
+                do {
+                    output.write(buf)
+                } while (input.read(buf) !== -1)
+            } finally {
+                input.close()
+                output.close()
             }
         }
     }
