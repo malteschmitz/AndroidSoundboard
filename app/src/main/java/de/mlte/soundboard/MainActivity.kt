@@ -64,11 +64,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         btn.setOnLongClickListener {
-            val intent = Intent()
-                    .setType("audio/*")
-                    .setAction(Intent.ACTION_GET_CONTENT)
+            val intent = Intent(baseContext, EditActivity::class.java)
+            intent.putExtra("uri", currentUri)
+            intent.putExtra("caption", btn.text)
+            startActivityForResult(intent, 1234)
 
-            startActivityForResult(Intent.createChooser(intent, "Select a file"), 123)
             true
         }
     }
@@ -78,8 +78,11 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == 123 && resultCode == Activity.RESULT_OK && data != null) {
-            currentUri = data.data
+        if (requestCode == 1234 && resultCode == Activity.RESULT_OK && data != null) {
+            val btn = findViewById<TextView>(R.id.text_view_button)
+            btn.setText(data.getStringExtra("caption"))
+            currentUri = data.getParcelableExtra<Uri>("uri")
+            grantUriPermission(getPackageName(), currentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
 }
