@@ -9,6 +9,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import java.util.*
 import kotlin.concurrent.timerTask
+import android.content.Intent
+import android.R.attr.data
+import android.app.Activity
+import android.net.Uri
+
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,20 +45,41 @@ class MainActivity : AppCompatActivity() {
                 playing = false
                 progressBar.progress = 0
             } else {
-                val mp = MediaPlayer.create(this, R.raw.splash)
-                mp.setOnCompletionListener {
-                    progressBar.progress = 0
-                    mp.reset()
-                    mp.release()
-                    playing = false
-                }
-                mp.start()
-                player = mp
-                playing = true
+                currentUri?.let { uri ->
+                    val mp = MediaPlayer.create(this, uri)
+                    mp.setOnCompletionListener {
+                        progressBar.progress = 0
+                        mp.reset()
+                        mp.release()
+                        playing = false
+                    }
+                    mp.start()
+                    player = mp
+                    playing = true
 
-                progressBar.progress = 0
-                objectAnimator.setDuration(mp.duration.toLong()).start()
+                    progressBar.progress = 0
+                    objectAnimator.setDuration(mp.duration.toLong()).start()
+                }
             }
+        }
+
+        btn.setOnLongClickListener {
+            val intent = Intent()
+                    .setType("*/*")
+                    .setAction(Intent.ACTION_GET_CONTENT)
+
+            startActivityForResult(Intent.createChooser(intent, "Select a file"), 123)
+            true
+        }
+    }
+
+    var currentUri: Uri? = null
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 123 && resultCode == Activity.RESULT_OK && data != null) {
+            currentUri = data.data
         }
     }
 }
