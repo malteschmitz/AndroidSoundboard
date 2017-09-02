@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
         btn.setOnLongClickListener {
             val intent = Intent()
-                    .setType("*/*")
+                    .setType("audio/*")
                     .setAction(Intent.ACTION_GET_CONTENT)
 
             startActivityForResult(Intent.createChooser(intent, "Select a file"), 123)
