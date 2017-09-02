@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.animation.LinearInterpolator
 import android.widget.ProgressBar
 import android.widget.TextView
 import java.util.*
@@ -16,7 +17,13 @@ class MainActivity : AppCompatActivity() {
 
         var player: MediaPlayer? = null
         val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        var timer = Timer()
+        val objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 1000)
+        objectAnimator.interpolator = LinearInterpolator()
+        progressBar.max = 1000
+        objectAnimator.addUpdateListener({ valueAnimator ->
+            val progress = valueAnimator.animatedValue as Int
+            progressBar.progress = progress
+        })
         var playing = false
 
         val btn = findViewById<TextView>(R.id.text_view_button)
@@ -29,13 +36,12 @@ class MainActivity : AppCompatActivity() {
                     mp.reset()
                     mp.release()
                 }
+                objectAnimator.cancel()
                 playing = false
-                timer.cancel()
                 progressBar.progress = 0
             } else {
                 val mp = MediaPlayer.create(this, R.raw.splash)
                 mp.setOnCompletionListener {
-                    timer.cancel()
                     progressBar.progress = 0
                     mp.reset()
                     mp.release()
@@ -45,20 +51,8 @@ class MainActivity : AppCompatActivity() {
                 player = mp
                 playing = true
 
-                progressBar.max = mp.duration
                 progressBar.progress = 0
-
-                timer = Timer()
-                val timerTask = timerTask {
-                    runOnUiThread {
-                        if (playing && mp.isPlaying) {
-                            if (mp.currentPosition > progressBar.progress) {
-                                progressBar.progress = mp.currentPosition
-                            }
-                        }
-                    }
-                }
-                timer.schedule(timerTask, 40, 40)
+                objectAnimator.setDuration(mp.duration.toLong()).start()
             }
         }
     }
