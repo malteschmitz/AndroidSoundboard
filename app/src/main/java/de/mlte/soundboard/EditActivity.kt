@@ -31,7 +31,9 @@ class EditActivity : AppCompatActivity() {
         okButton.setOnClickListener {
             val intent = Intent()
             intent.putExtra("caption", captionEditText.text.toString())
-            intent.putExtra("uri", currentUri)
+            if (currentUri != null) {
+                intent.putExtra("uri", currentUri)
+            }
             setResult(Activity.RESULT_OK, intent)
             finish()
         }

@@ -80,9 +80,14 @@ class MainActivity : AppCompatActivity() {
 
         if (requestCode == 1234 && resultCode == Activity.RESULT_OK && data != null) {
             val btn = findViewById<TextView>(R.id.text_view_button)
-            btn.setText(data.getStringExtra("caption"))
+            val caption = data.getStringExtra("caption")
+            if (caption != null) {
+                btn.setText(caption)
+            }
             currentUri = data.getParcelableExtra<Uri>("uri")
-            grantUriPermission(getPackageName(), currentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (currentUri != null) {
+                grantUriPermission(getPackageName(), currentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
         }
     }
 }
