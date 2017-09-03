@@ -28,11 +28,8 @@ class MainActivity : AppCompatActivity() {
         val myToolbar = findViewById<View>(R.id.my_toolbar) as Toolbar
         setSupportActionBar(myToolbar)
 
-
-        spawnButtons()
-
         loadPreferences()
-
+        organizeButtons()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -47,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.action_add_new -> {
                     val button = SoundButton(this)
                     addButton(button)
+                    saveNumButtons()
                     organizeButtons()
                     return true
                 }
@@ -55,17 +53,15 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun spawnButtons() {
-        for (i in 0..4) {
-            val soundButton = SoundButton(this)
-            addButton(soundButton)
-        }
-        organizeButtons()
+    private fun saveNumButtons() {
+        val editor = getPreferences(Context.MODE_PRIVATE).edit()
+        editor.putInt("numButtons", buttons.size)
+        editor.commit()
     }
 
     private fun organizeButtons() {
         val parent = findViewById<GridLayout>(R.id.grid_layout)
-        val columns = Math.min(Math.ceil(buttons.size / 4.0).toInt(), 4)
+        val columns = Math.max(Math.min(Math.ceil(buttons.size / 4.0).toInt(), 4), 1)
         parent.columnCount = columns
         buttons.forEachIndexed { index, soundButton ->
             val col = index % columns
@@ -126,8 +122,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadPreferences() {
+        val parent = findViewById<GridLayout>(R.id.grid_layout)
+        parent.columnCount = 1
+
         val preferences = getPreferences(Context.MODE_PRIVATE)
-        buttons.forEachIndexed { index, soundButton ->
+        val numButtons = preferences.getInt("numButtons", 0)
+        for (index in 0..numButtons-1) {
+            val soundButton = SoundButton(this)
+            addButton(soundButton)
             val caption = preferences.getString("caption" + index, "")
             soundButton.btn.text = caption
         }
