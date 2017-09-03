@@ -1,22 +1,18 @@
 package de.mlte.soundboard
 
 import android.animation.ObjectAnimator
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.animation.LinearInterpolator
 import android.widget.ProgressBar
 import android.widget.TextView
-import java.util.*
-import kotlin.concurrent.timerTask
-import android.content.Intent
-import android.R.attr.data
-import android.app.Activity
-import android.content.Context
-import android.net.Uri
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.FileInputStream
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,7 +47,7 @@ class MainActivity : AppCompatActivity() {
                 playing = false
                 progressBar.progress = 0
             } else {
-                val file = getFileStreamPath("audio.mp3")
+                val file = getFileStreamPath("audio")
                 if (file.exists()) {
                     val mp = MediaPlayer.create(this, Uri.fromFile(file))
                     mp.setOnCompletionListener {
@@ -86,8 +82,6 @@ class MainActivity : AppCompatActivity() {
         btn.setText(caption)
     }
 
-    // var currentUri: Uri? = null
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -105,11 +99,12 @@ class MainActivity : AppCompatActivity() {
     private fun savePreferences(caption: String, uri: Uri?) {
         val btn = findViewById<TextView>(R.id.text_view_button)
         val editor = getPreferences(Context.MODE_PRIVATE).edit()
+        editor.putString("caption", btn.text.toString())
         editor.commit()
 
         uri?.let { uri ->
             grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            val output = BufferedOutputStream(openFileOutput("audio.mp3", Context.MODE_PRIVATE))
+            val output = BufferedOutputStream(openFileOutput("audio", Context.MODE_PRIVATE))
             val input = BufferedInputStream(getContentResolver().openInputStream(uri))
             try {
                 val buf = ByteArray(1024)
