@@ -19,6 +19,10 @@ import java.io.BufferedOutputStream
 
 
 class MainActivity : AppCompatActivity() {
+    private val buttons = ArrayList<SoundButton>()
+    private var player: MediaPlayer? = null
+    private var playing = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,57 +31,6 @@ class MainActivity : AppCompatActivity() {
 
         loadPreferences()
 
-        var player: MediaPlayer? = null
-        val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        val objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 1000)
-        objectAnimator.interpolator = LinearInterpolator()
-        progressBar.max = 1000
-        objectAnimator.addUpdateListener({ valueAnimator ->
-            val progress = valueAnimator.animatedValue as Int
-            progressBar.progress = progress
-        })
-        var playing = false
-
-        val btn = findViewById<TextView>(R.id.text_view_button)
-        btn.setOnClickListener {
-            if (playing) {
-                player?.let { mp ->
-                    if (mp.isPlaying) {
-                        mp.stop()
-                    }
-                    mp.reset()
-                    mp.release()
-                }
-                objectAnimator.cancel()
-                playing = false
-                progressBar.progress = 0
-            } else {
-                val file = getFileStreamPath("audio")
-                if (file.exists()) {
-                    val mp = MediaPlayer.create(this, Uri.fromFile(file))
-                    mp.setOnCompletionListener {
-                        progressBar.progress = 0
-                        mp.reset()
-                        mp.release()
-                        playing = false
-                    }
-                    mp.start()
-                    player = mp
-                    playing = true
-
-                    progressBar.progress = 0
-                    objectAnimator.setDuration(mp.duration.toLong()).start()
-                }
-            }
-        }
-
-        btn.setOnLongClickListener {
-            val intent = Intent(baseContext, EditActivity::class.java)
-            intent.putExtra("caption", btn.text)
-            startActivityForResult(intent, 1234)
-
-            true
-        }
     }
 
     private fun duplicateButton() {
@@ -89,7 +42,50 @@ class MainActivity : AppCompatActivity() {
         for (row in 0..1) {
             for (col in 0..1) {
                 val soundButton = SoundButton(this, col, row)
+                buttons.add(soundButton)
                 parent.addView(soundButton)
+
+                soundButton.btn.setOnClickListener {
+                    if (playing) {
+                        player?.let { mp ->
+                            if (mp.isPlaying) {
+                                mp.stop()
+                            }
+                            mp.reset()
+                            mp.release()
+                        }
+                        for (button in buttons) {
+                            button.objectAnimator.cancel()
+                            button.progressBar.progress = 0
+                        }
+                        playing = false
+                    } else {
+                        val file = getFileStreamPath("audio")
+                        if (file.exists()) {
+                            val mp = MediaPlayer.create(this, Uri.fromFile(file))
+                            mp.setOnCompletionListener {
+                                soundButton.progressBar.progress = 0
+                                mp.reset()
+                                mp.release()
+                                playing = false
+                            }
+                            mp.start()
+                            player = mp
+                            playing = true
+
+                            soundButton.progressBar.progress = 0
+                            soundButton.objectAnimator.setDuration(mp.duration.toLong()).start()
+                        }
+                    }
+                }
+
+                soundButton.btn.setOnLongClickListener {
+                    val intent = Intent(baseContext, EditActivity::class.java)
+                    intent.putExtra("caption", soundButton.btn.text)
+                    startActivityForResult(intent, 1234)
+
+                    true
+                }
             }
         }
     }
@@ -137,4 +133,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+
 }
