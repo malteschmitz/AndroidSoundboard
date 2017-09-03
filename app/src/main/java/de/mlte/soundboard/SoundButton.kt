@@ -14,15 +14,8 @@ class SoundButton : FrameLayout {
     val btn: TextView
     val objectAnimator: ObjectAnimator
 
-    constructor(context: Context, col: Int, row: Int) : super(context) {
+    constructor(context: Context) : super(context) {
         View.inflate(context, R.layout.layout_button, this)
-
-        val params = GridLayout.LayoutParams()
-        params.columnSpec = GridLayout.spec(col, 1, 1.0f)
-        params.rowSpec = GridLayout.spec(row, 1, 1.0f)
-        params.width = 0
-        params.height = 0
-        layoutParams = params
 
         progressBar = findViewById<ProgressBar>(R.id.progress_bar)
         btn = findViewById<TextView>(R.id.text_view_button)
@@ -36,5 +29,12 @@ class SoundButton : FrameLayout {
         })
     }
 
-
+    fun move(col: Int, row: Int) {
+        val params = GridLayout.LayoutParams()
+        params.columnSpec = GridLayout.spec(col, 1, 1.0f)
+        params.rowSpec = GridLayout.spec(row, 1, 1.0f)
+        params.width = 0
+        params.height = 0
+        layoutParams = params
+    }
 }

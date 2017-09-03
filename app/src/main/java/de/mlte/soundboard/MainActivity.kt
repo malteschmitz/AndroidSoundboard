@@ -45,8 +45,9 @@ class MainActivity : AppCompatActivity() {
         if (item != null) {
             when (item.itemId) {
                 R.id.action_add_new -> {
-                    val button = SoundButton(this, 0,2)
+                    val button = SoundButton(this)
                     addButton(button)
+                    organizeButtons()
                     return true
                 }
             }
@@ -55,13 +56,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun spawnButtons() {
+        for (i in 0..4) {
+            val soundButton = SoundButton(this)
+            addButton(soundButton)
+        }
+        organizeButtons()
+    }
+
+    private fun organizeButtons() {
         val parent = findViewById<GridLayout>(R.id.grid_layout)
-        parent.columnCount = 2
-        for (row in 0..1) {
-            for (col in 0..1) {
-                val soundButton = SoundButton(this, col, row)
-                addButton(soundButton)
-            }
+        val columns = Math.min(Math.ceil(buttons.size / 4.0).toInt(), 4)
+        parent.columnCount = columns
+        buttons.forEachIndexed { index, soundButton ->
+            val col = index % columns
+            val row = index / columns
+            soundButton.move(col, row)
         }
     }
 
