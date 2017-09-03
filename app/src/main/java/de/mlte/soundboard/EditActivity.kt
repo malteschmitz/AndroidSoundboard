@@ -29,12 +29,13 @@ class EditActivity : AppCompatActivity() {
 
         val okButton = findViewById<Button>(R.id.okButton)
         okButton.setOnClickListener {
-            val intent = Intent()
-            intent.putExtra("caption", captionEditText.text.toString())
+            val data = Intent()
+            data.putExtra("index", intent.getIntExtra("index", -1))
+            data.putExtra("caption", captionEditText.text.toString())
             if (currentUri != null) {
-                intent.putExtra("uri", currentUri)
+                data.putExtra("uri", currentUri)
             }
-            setResult(Activity.RESULT_OK, intent)
+            setResult(Activity.RESULT_OK, data)
             finish()
         }
 
