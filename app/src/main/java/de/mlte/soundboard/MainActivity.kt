@@ -8,7 +8,10 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
 import android.view.animation.LinearInterpolator
+import android.widget.FrameLayout
+import android.widget.GridLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import java.io.BufferedInputStream
@@ -19,6 +22,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        duplicateButton()
 
         loadPreferences()
 
@@ -72,6 +77,30 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, 1234)
 
             true
+        }
+    }
+
+    private fun duplicateButton() {
+        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val parent = findViewById<GridLayout>(R.id.grid_layout)
+
+        parent.columnCount = 2
+
+        for (row in 0..1) {
+            for (col in 0..1) {
+                val newFrame = inflater.inflate(R.layout.layout_button, null)
+                // newFrame.findViewById<ProgressBar>(R.id.progress_bar)
+                // newFrame.findViewById<TextView>(R.id.text_view_button)
+
+                val params = GridLayout.LayoutParams()
+                params.columnSpec = GridLayout.spec(col, 1, 1.0f)
+                params.rowSpec = GridLayout.spec(row, 1, 1.0f)
+                params.width = 0
+                params.height = 0
+                newFrame.layoutParams = params
+
+                parent.addView(newFrame)
+            }
         }
     }
 
