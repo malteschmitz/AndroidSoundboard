@@ -47,6 +47,15 @@ class EditActivity : AppCompatActivity() {
 
             startActivityForResult(intent, 123)
         }
+
+        val deleteButton = findViewById<Button>(R.id.deleteButton)
+        deleteButton.setOnClickListener {
+            val data = Intent()
+            data.putExtra("index", intent.getIntExtra("index", -1))
+            data.putExtra("delete", true)
+            setResult(Activity.RESULT_OK, data)
+            finish()
+        }
     }
 
     var currentUri: Uri? = null

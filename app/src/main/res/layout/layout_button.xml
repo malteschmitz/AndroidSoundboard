@@ -17,7 +17,6 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:padding="6dp"
-        android:text="Enter"
         android:textColor="@android:color/white"
         android:textSize="16sp"
         android:textStyle="bold" />

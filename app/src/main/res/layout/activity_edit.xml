@@ -1,76 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp"
     tools:context="de.mlte.soundboard.EditActivity">
-
-    <Button
-        android:id="@+id/okButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:text="OK"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/captionEditText"
-        tools:layout_editor_absoluteX="116dp"
-        tools:layout_editor_absoluteY="231dp" />
 
     <EditText
         android:id="@+id/captionEditText"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:ems="10"
         android:inputType="textPersonName"
-        android:text="Name"
-        app:layout_constraintBottom_toTopOf="@+id/okButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/selectButton"
-        tools:layout_editor_absoluteX="76dp"
-        tools:layout_editor_absoluteY="121dp" />
+        android:hint="Name" />
 
     <Button
         android:id="@+id/selectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:text="Select File ..."
-        app:layout_constraintBottom_toTopOf="@+id/captionEditText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
-        tools:layout_editor_absoluteX="94dp"
-        tools:layout_editor_absoluteY="42dp" />
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/captionEditText"
+        android:text="Select File ..." />
 
     <TextView
         android:id="@+id/fileTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/selectButton"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/captionEditText"
+        android:layout_toLeftOf="@id/selectButton" />
+
+    <Button
+        android:id="@+id/okButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/selectButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        tools:layout_editor_absoluteX="148dp"
-        tools:layout_editor_absoluteY="30dp" />
-</android.support.constraint.ConstraintLayout>
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/selectButton"
+        android:layout_marginTop="48dp"
+        android:text="OK" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/okButton"
+        android:layout_alignParentStart="false"
+        android:layout_marginRight="8dp"
+        android:layout_toLeftOf="@+id/okButton"
+        android:backgroundTint="@android:color/holo_red_dark"
+        android:text="Delete"
+        android:textColor="@android:color/white" />
+
+</RelativeLayout>

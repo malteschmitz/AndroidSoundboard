@@ -127,7 +127,7 @@ class MainActivity : AppCompatActivity() {
 
         val preferences = getPreferences(Context.MODE_PRIVATE)
         val numButtons = preferences.getInt("numButtons", 0)
-        for (index in 0..numButtons-1) {
+        for (index in 0..numButtons - 1) {
             val soundButton = SoundButton(this)
             addButton(soundButton)
             val caption = preferences.getString("caption" + index, "")
@@ -142,12 +142,19 @@ class MainActivity : AppCompatActivity() {
             val index = data.getIntExtra("index", -1)
             if (index > -1 && index < buttons.size) {
                 val btn = buttons[index].btn
-                val caption = data.getStringExtra("caption")
-                if (caption != null) {
-                    btn.setText(caption)
+                if (data.getBooleanExtra("delete", false)) {
+                    buttons.removeAt(index)
+                    val parent = findViewById<GridLayout>(R.id.grid_layout)
+                    parent.removeView(btn)
+                    organizeButtons()
+                } else {
+                    val caption = data.getStringExtra("caption")
+                    if (caption != null) {
+                        btn.setText(caption)
+                    }
+                    val uri = data.getParcelableExtra<Uri>("uri")
+                    savePreferences(caption, uri, index)
                 }
-                val uri = data.getParcelableExtra<Uri>("uri")
-                savePreferences(caption, uri, index)
             }
         }
     }
