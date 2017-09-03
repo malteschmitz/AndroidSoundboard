@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Soundboard</string>
+    <string name="action_add_new">Add new</string>
 </resources>

@@ -6,12 +6,21 @@
     android:layout_height="match_parent"
     tools:context="de.mlte.soundboard.MainActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/my_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+
     <GridLayout
+        android:paddingTop="?attr/actionBarSize"
         android:id="@+id/grid_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:columnCount="1"
-        android:padding="1dp">
+        android:columnCount="1">
 
     </GridLayout>
 

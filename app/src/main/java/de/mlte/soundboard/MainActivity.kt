@@ -7,9 +7,11 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.view.LayoutInflater
+import android.support.v7.widget.Toolbar
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.GridLayout
-import android.widget.TextView
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 
@@ -23,69 +25,94 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        duplicateButton()
+        val myToolbar = findViewById<View>(R.id.my_toolbar) as Toolbar
+        setSupportActionBar(myToolbar)
+
+
+        spawnButtons()
 
         loadPreferences()
 
     }
 
-    private fun duplicateButton() {
-        val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater = menuInflater
+        inflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        if (item != null) {
+            when (item.itemId) {
+                R.id.action_add_new -> {
+                    val button = SoundButton(this, 0,2)
+                    addButton(button)
+                    return true
+                }
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun spawnButtons() {
         val parent = findViewById<GridLayout>(R.id.grid_layout)
-
         parent.columnCount = 2
-
         for (row in 0..1) {
             for (col in 0..1) {
                 val soundButton = SoundButton(this, col, row)
-                buttons.add(soundButton)
-                parent.addView(soundButton)
+                addButton(soundButton)
+            }
+        }
+    }
+
+    private fun addButton(soundButton: SoundButton) {
+        val index = buttons.size
+        buttons.add(soundButton)
+
+        val parent = findViewById<GridLayout>(R.id.grid_layout)
+        parent.addView(soundButton)
+
+        soundButton.btn.setOnClickListener {
+            if (playing) {
+                player?.let { mp ->
+                    if (mp.isPlaying) {
+                        mp.stop()
+                    }
+                    mp.reset()
+                    mp.release()
+                }
+                for (button in buttons) {
+                    button.objectAnimator.cancel()
+                    button.progressBar.progress = 0
+                }
+                playing = false
+            } else {
+                val file = getFileStreamPath("audio" + index)
+                if (file.exists()) {
+                    val mp = MediaPlayer.create(this, Uri.fromFile(file))
+                    mp.setOnCompletionListener {
+                        soundButton.progressBar.progress = 0
+                        mp.reset()
+                        mp.release()
+                        playing = false
+                    }
+                    mp.start()
+                    player = mp
+                    playing = true
+
+                    soundButton.progressBar.progress = 0
+                    soundButton.objectAnimator.setDuration(mp.duration.toLong()).start()
+                }
             }
         }
 
-        buttons.forEachIndexed { index, soundButton ->
-            soundButton.btn.setOnClickListener {
-                if (playing) {
-                    player?.let { mp ->
-                        if (mp.isPlaying) {
-                            mp.stop()
-                        }
-                        mp.reset()
-                        mp.release()
-                    }
-                    for (button in buttons) {
-                        button.objectAnimator.cancel()
-                        button.progressBar.progress = 0
-                    }
-                    playing = false
-                } else {
-                    val file = getFileStreamPath("audio" + index)
-                    if (file.exists()) {
-                        val mp = MediaPlayer.create(this, Uri.fromFile(file))
-                        mp.setOnCompletionListener {
-                            soundButton.progressBar.progress = 0
-                            mp.reset()
-                            mp.release()
-                            playing = false
-                        }
-                        mp.start()
-                        player = mp
-                        playing = true
+        soundButton.btn.setOnLongClickListener {
+            val intent = Intent(baseContext, EditActivity::class.java)
+            intent.putExtra("index", index)
+            intent.putExtra("caption", soundButton.btn.text)
+            startActivityForResult(intent, 1234)
 
-                        soundButton.progressBar.progress = 0
-                        soundButton.objectAnimator.setDuration(mp.duration.toLong()).start()
-                    }
-                }
-            }
-
-            soundButton.btn.setOnLongClickListener {
-                val intent = Intent(baseContext, EditActivity::class.java)
-                intent.putExtra("index", index)
-                intent.putExtra("caption", soundButton.btn.text)
-                startActivityForResult(intent, 1234)
-
-                true
-            }
+            true
         }
     }
 
