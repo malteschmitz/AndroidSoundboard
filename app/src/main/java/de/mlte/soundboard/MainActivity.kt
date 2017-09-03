@@ -88,18 +88,8 @@ class MainActivity : AppCompatActivity() {
 
         for (row in 0..1) {
             for (col in 0..1) {
-                val newFrame = inflater.inflate(R.layout.layout_button, null)
-                // newFrame.findViewById<ProgressBar>(R.id.progress_bar)
-                // newFrame.findViewById<TextView>(R.id.text_view_button)
-
-                val params = GridLayout.LayoutParams()
-                params.columnSpec = GridLayout.spec(col, 1, 1.0f)
-                params.rowSpec = GridLayout.spec(row, 1, 1.0f)
-                params.width = 0
-                params.height = 0
-                newFrame.layoutParams = params
-
-                parent.addView(newFrame)
+                val soundButton = SoundButton(this, col, row)
+                parent.addView(soundButton)
             }
         }
     }
