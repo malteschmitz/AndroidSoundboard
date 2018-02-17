@@ -1,5 +1,6 @@
 package de.mlte.soundboard
 
+import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -11,6 +12,7 @@ import android.support.v7.widget.Toolbar
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.LinearInterpolator
 import android.widget.GridLayout
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -19,6 +21,8 @@ class MainActivity : AppCompatActivity() {
     private val buttons = ArrayList<SoundButton>()
     private var player: MediaPlayer? = null
     private var playing = false
+    private var playingButton: SoundButton? = null
+    private var playingAnimator: ValueAnimator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,6 +33,53 @@ class MainActivity : AppCompatActivity() {
 
         loadPreferences()
         organizeButtons()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        if (playing) {
+            player?.let { mp ->
+                if (mp.isPlaying) {
+                    outState?.putBoolean("playing", true)
+                    outState?.putInt("playingPosition", mp.currentPosition)
+                    val parent = findViewById<GridLayout>(R.id.grid_layout)
+                    val index = parent.indexOfChild(playingButton)
+                    outState?.putInt("playingIndex", index)
+                }
+            }
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        if (playing) {
+            player?.let { mp ->
+                if (mp.isPlaying) {
+                    mp.stop()
+                }
+                mp.reset()
+                mp.release()
+            }
+            playingAnimator?.cancel()
+        }
+
+        super.onDestroy()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+        buttons.forEach { button ->
+            button.progressBar.progress = 0
+        }
+
+        savedInstanceState?.let { state ->
+            if (state.getBoolean("playing")) {
+                val button = buttons[state.getInt("playingIndex")]
+                val position = state.getInt("playingPosition")
+                startPlaying(button, position)
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -85,34 +136,48 @@ class MainActivity : AppCompatActivity() {
                     mp.reset()
                     mp.release()
                 }
-                for (button in buttons) {
-                    button.objectAnimator.cancel()
+                playingButton?.let { button ->
                     button.progressBar.progress = 0
                 }
                 playing = false
+                playingAnimator?.cancel()
             } else {
-                val file = getFileStreamPath("audio" + soundButton.soundId)
-                if (file.exists()) {
-                    val mp = MediaPlayer.create(this, Uri.fromFile(file))
-                    mp.setOnCompletionListener {
-                        soundButton.progressBar.progress = 0
-                        mp.reset()
-                        mp.release()
-                        playing = false
-                    }
-                    mp.start()
-                    player = mp
-                    playing = true
-
-                    soundButton.progressBar.progress = 0
-                    soundButton.objectAnimator.setDuration(mp.duration.toLong()).start()
-                }
+                startPlaying(soundButton, 0)
             }
         }
 
         soundButton.textView.setOnLongClickListener {
             editButton(soundButton)
             true
+        }
+    }
+
+    private fun startPlaying(soundButton: SoundButton, position: Int) {
+        val file = getFileStreamPath("audio" + soundButton.soundId)
+        if (file.exists()) {
+            val mp = MediaPlayer.create(this, Uri.fromFile(file))
+            mp.setOnCompletionListener {
+                playingAnimator?.cancel()
+                soundButton.progressBar.progress = 0
+                mp.reset()
+                mp.release()
+                playing = false
+            }
+            mp.seekTo(position)
+            mp.start()
+            player = mp
+            playing = true
+            playingButton = soundButton
+
+            val bar = soundButton.progressBar
+            val animator = ValueAnimator.ofInt(bar.max * position / mp.duration, bar.max)
+            animator.interpolator = LinearInterpolator()
+            animator.addUpdateListener {
+                bar.progress = animator.animatedValue as Int
+            }
+            animator.duration = mp.duration.toLong() - position
+            animator.start()
+            playingAnimator = animator
         }
     }
 
@@ -206,5 +271,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    
+
 }

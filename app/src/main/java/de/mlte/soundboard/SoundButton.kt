@@ -1,9 +1,7 @@
 package de.mlte.soundboard
 
-import android.animation.ObjectAnimator
 import android.content.Context
 import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ProgressBar
@@ -12,7 +10,6 @@ import android.widget.TextView
 class SoundButton : FrameLayout {
     val progressBar: ProgressBar
     val textView: TextView
-    val objectAnimator: ObjectAnimator
     var soundId: Long = 0
     var fileName: String = ""
 
@@ -20,15 +17,8 @@ class SoundButton : FrameLayout {
         View.inflate(context, R.layout.layout_button, this)
 
         progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        textView = findViewById<TextView>(R.id.text_view_button)
-
-        objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.progress, 1000)
-        objectAnimator.interpolator = LinearInterpolator()
         progressBar.max = 1000
-        objectAnimator.addUpdateListener({ valueAnimator ->
-            val progress = valueAnimator.animatedValue as Int
-            progressBar.progress = progress
-        })
+        textView = findViewById<TextView>(R.id.text_view_button)
     }
 
     fun move(col: Int, row: Int) {
