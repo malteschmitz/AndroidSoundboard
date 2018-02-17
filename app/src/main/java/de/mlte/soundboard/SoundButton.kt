@@ -22,7 +22,7 @@ class SoundButton : FrameLayout {
         progressBar = findViewById<ProgressBar>(R.id.progress_bar)
         textView = findViewById<TextView>(R.id.text_view_button)
 
-        objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 1000)
+        objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.progress, 1000)
         objectAnimator.interpolator = LinearInterpolator()
         progressBar.max = 1000
         objectAnimator.addUpdateListener({ valueAnimator ->

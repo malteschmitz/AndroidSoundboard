@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
 
         val preferences = getPreferences(Context.MODE_PRIVATE)
         val numButtons = preferences.getInt("numButtons", 0)
-        for (index in 0..numButtons - 1) {
+        for (index in 0 until numButtons) {
             val soundButton = SoundButton(this)
             addButton(soundButton)
             val caption = preferences.getString("caption" + index, "")
@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     val caption = data.getStringExtra("caption")
                     if (caption != null) {
-                        textView.setText(caption)
+                        textView.text = caption
                     }
                     val uri = data.getParcelableExtra<Uri>("uri")
                     val fileName = data.getStringExtra("fileName")
@@ -190,9 +190,9 @@ class MainActivity : AppCompatActivity() {
                 buttons[index].soundId = newSoundId
                 editor.putLong("soundId" + index, newSoundId)
                 editor.commit()
-                grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 val output = BufferedOutputStream(openFileOutput("audio" + newSoundId, Context.MODE_PRIVATE))
-                val input = BufferedInputStream(getContentResolver().openInputStream(uri))
+                val input = BufferedInputStream(contentResolver.openInputStream(uri))
                 try {
                     val buf = ByteArray(1024)
                     input.read(buf)
@@ -206,6 +206,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-
+    
 }

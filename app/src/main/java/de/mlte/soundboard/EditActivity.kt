@@ -16,7 +16,7 @@ class EditActivity : AppCompatActivity() {
     private fun displayFile() {
         val fileTextView = findViewById<TextView>(R.id.fileTextView)
         currentUri?.let { uri ->
-            fileTextView.setText(getFileName(uri))
+            fileTextView.text = getFileName(uri)
             if (captionEditText.text.isBlank()) {
                 captionEditText.setText(fileTextView.text)
             }
@@ -30,7 +30,7 @@ class EditActivity : AppCompatActivity() {
         val captionEditText = findViewById<EditText>(R.id.captionEditText)
         captionEditText.setText(intent.getStringExtra("caption"))
 
-        fileTextView.setText(intent.getStringExtra("fileName"))
+        fileTextView.text = intent.getStringExtra("fileName")
 
         val okButton = findViewById<Button>(R.id.okButton)
         okButton.setOnClickListener {
@@ -64,7 +64,7 @@ class EditActivity : AppCompatActivity() {
         }
     }
 
-    var currentUri: Uri? = null
+    private var currentUri: Uri? = null
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -75,7 +75,7 @@ class EditActivity : AppCompatActivity() {
         }
     }
 
-    fun getFileName(uri: Uri): String {
+    private fun getFileName(uri: Uri): String {
         var result: String? = null
         if (uri.scheme == "content") {
             val cursor = contentResolver.query(uri, null, null, null, null)
