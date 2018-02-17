@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
@@ -111,14 +112,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun organizeButtons() {
+        val orientation = resources.configuration.orientation
+        val cols = if (orientation == ORIENTATION_LANDSCAPE)
+            Math.ceil(buttons.size / 2.0).toInt()
+        else
+            Math.ceil(buttons.size / 4.0).toInt()
+        val columns = Math.max(Math.min(cols, 4), 1)
+
         val parent = findViewById<GridLayout>(R.id.grid_layout)
-        val columns = Math.max(Math.min(Math.ceil(buttons.size / 4.0).toInt(), 4), 1)
-        parent.columnCount = columns
+
+        // every column index used by a button must always be lower than columnCount
+        if (columns > parent.columnCount) {
+            parent.columnCount = columns
+        }
+
         buttons.forEachIndexed { index, soundButton ->
             val col = index % columns
             val row = index / columns
             soundButton.move(col, row)
         }
+
+        parent.columnCount = columns
     }
 
     private fun addButton(soundButton: SoundButton) {
