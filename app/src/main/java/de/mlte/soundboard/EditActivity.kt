@@ -24,9 +24,6 @@ class EditActivity : AppCompatActivity() {
         val captionEditText = findViewById<EditText>(R.id.captionEditText)
         captionEditText.setText(intent.getStringExtra("caption"))
 
-        currentUri = intent.getParcelableExtra<Uri>("uri")
-        displayFile();
-
         val okButton = findViewById<Button>(R.id.okButton)
         okButton.setOnClickListener {
             val data = Intent()

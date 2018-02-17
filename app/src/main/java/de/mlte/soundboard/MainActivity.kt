@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 playing = false
             } else {
-                val file = getFileStreamPath("audio" + index)
+                val file = getFileStreamPath("audio" + soundButton.soundId)
                 if (file.exists()) {
                     val mp = MediaPlayer.create(this, Uri.fromFile(file))
                     mp.setOnCompletionListener {
@@ -132,6 +132,8 @@ class MainActivity : AppCompatActivity() {
             addButton(soundButton)
             val caption = preferences.getString("caption" + index, "")
             soundButton.btn.text = caption
+            val soundId = preferences.getLong("soundId" + index, 0)
+            soundButton.soundId = soundId
         }
     }
 
@@ -143,6 +145,7 @@ class MainActivity : AppCompatActivity() {
             if (index > -1 && index < buttons.size) {
                 val btn = buttons[index].btn
                 if (data.getBooleanExtra("delete", false)) {
+                    deleteFile("audio" + buttons[index].soundId)
                     buttons.removeAt(index)
                     val parent = findViewById<GridLayout>(R.id.grid_layout)
                     parent.removeView(btn)
@@ -162,13 +165,19 @@ class MainActivity : AppCompatActivity() {
     private fun savePreferences(caption: String, uri: Uri?, index: Int) {
         if (index > -1 && index < buttons.size) {
             val btn = buttons[index].btn
+            val soundId = buttons[index].soundId
             val editor = getPreferences(Context.MODE_PRIVATE).edit()
             editor.putString("caption" + index, btn.text.toString())
             editor.commit()
 
             uri?.let { uri ->
+                deleteFile("audio" + soundId)
+                val newSoundId = System.currentTimeMillis()
+                buttons[index].soundId = newSoundId
+                editor.putLong("soundId" + index, newSoundId)
+                editor.commit()
                 grantUriPermission(getPackageName(), uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                val output = BufferedOutputStream(openFileOutput("audio" + index, Context.MODE_PRIVATE))
+                val output = BufferedOutputStream(openFileOutput("audio" + newSoundId, Context.MODE_PRIVATE))
                 val input = BufferedInputStream(getContentResolver().openInputStream(uri))
                 try {
                     val buf = ByteArray(1024)
