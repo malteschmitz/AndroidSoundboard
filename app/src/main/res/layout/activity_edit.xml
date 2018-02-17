@@ -4,24 +4,41 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:paddingTop="16dp"
     tools:context="de.mlte.soundboard.EditActivity">
 
-    <EditText
-        android:id="@+id/captionEditText"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/edit_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/input_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="textPersonName"
-        android:hint="Name" />
+        android:layout_below="@+id/edit_toolbar"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="16dp">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/captionEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            android:inputType="textPersonName" />
+    </android.support.design.widget.TextInputLayout>
 
     <Button
         android:id="@+id/selectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/captionEditText"
+        android:layout_below="@+id/input_layout"
+        android:layout_marginRight="16dp"
         android:text="Select File ..." />
 
     <TextView
@@ -30,29 +47,9 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/selectButton"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/captionEditText"
-        android:layout_toLeftOf="@id/selectButton" />
-
-    <Button
-        android:id="@+id/okButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/selectButton"
-        android:layout_marginTop="48dp"
-        android:text="OK" />
-
-    <Button
-        android:id="@+id/deleteButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/okButton"
-        android:layout_alignParentStart="false"
-        android:layout_marginRight="8dp"
-        android:layout_toLeftOf="@+id/okButton"
-        android:backgroundTint="@android:color/holo_red_dark"
-        android:text="Delete"
-        android:textColor="@android:color/white" />
+        android:layout_below="@+id/input_layout"
+        android:layout_marginLeft="16dp"
+        android:layout_toLeftOf="@id/selectButton"
+        android:text="@string/no_file_selected"/>
 
 </RelativeLayout>

@@ -238,6 +238,7 @@ class MainActivity : AppCompatActivity() {
                     parent.removeView(button)
                     saveNumButtons()
                     organizeButtons()
+                    // TODO: Do we need to remove some preferences?
                 } else {
                     val caption = data.getStringExtra("caption")
                     if (caption != null) {

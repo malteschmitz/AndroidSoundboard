@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Soundboard</string>
     <string name="action_add_new">Add new</string>
+    <string name="action_done">Done</string>
+    <string name="action_delete">Delete</string>
+    <string name="no_file_selected">No file selected</string>
 </resources>
