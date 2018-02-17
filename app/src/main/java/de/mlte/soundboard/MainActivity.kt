@@ -3,8 +3,6 @@ package de.mlte.soundboard
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.net.Uri
 import android.os.Bundle
@@ -17,10 +15,9 @@ import android.view.animation.LinearInterpolator
 import android.widget.GridLayout
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import android.content.ComponentName
 import android.os.IBinder
-import android.content.ServiceConnection
 import android.animation.AnimatorListenerAdapter
+import android.content.*
 import android.util.Log
 
 class MainActivity : AppCompatActivity() {
@@ -249,53 +246,61 @@ class MainActivity : AppCompatActivity() {
                     val parent = findViewById<GridLayout>(R.id.grid_layout)
                     parent.removeView(button)
                     saveNumButtons()
+                    saveAllButtons()
                     organizeButtons()
-                    // TODO: Do we need to remove some preferences?
                 } else {
                     val caption = data.getStringExtra("caption")
                     if (caption != null) {
                         textView.text = caption
                     }
-                    val uri = data.getParcelableExtra<Uri>("uri")
+                    val uri = data.getParcelableExtra<Uri?>("uri")
                     val fileName = data.getStringExtra("fileName")
                     if (fileName != null) {
                         button.fileName = fileName
                     }
-                    savePreferences(uri, index)
+                    uri?.let{ u -> saveAudio(u, index) }
+                    saveButton(index)
                 }
             }
         }
     }
 
-    private fun savePreferences(uri: Uri?, index: Int) {
-        if (index > -1 && index < buttons.size) {
-            val textView = buttons[index].textView
-            val soundId = buttons[index].soundId
-            val editor = getPreferences(Context.MODE_PRIVATE).edit()
-            editor.putString("caption" + index, textView.text.toString())
-            editor.putString("fileName" + index, buttons[index].fileName)
-            editor.apply()
+    private fun storeButton(editor: SharedPreferences.Editor, index: Int) {
+        val button = buttons[index]
+        editor.putString("caption" + index, button.textView.text.toString())
+        editor.putLong("soundId" + index, button.soundId)
+        editor.putString("fileName" + index, buttons[index].fileName)
+    }
 
-            uri?.let { u ->
-                deleteFile("audio" + soundId)
-                val newSoundId = System.currentTimeMillis()
-                buttons[index].soundId = newSoundId
-                editor.putLong("soundId" + index, newSoundId)
-                editor.commit()
-                grantUriPermission(packageName, u, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                val output = BufferedOutputStream(openFileOutput("audio" + newSoundId, Context.MODE_PRIVATE))
-                val input = BufferedInputStream(contentResolver.openInputStream(u))
-                try {
-                    val buf = ByteArray(1024)
-                    input.read(buf)
-                    do {
-                        output.write(buf)
-                    } while (input.read(buf) != -1)
-                } finally {
-                    input.close()
-                    output.close()
-                }
-            }
+    private fun saveButton(index: Int) {
+        val editor = getPreferences(Context.MODE_PRIVATE).edit()
+        storeButton(editor, index)
+        editor.apply()
+    }
+
+    private fun saveAllButtons() {
+        val editor = getPreferences(Context.MODE_PRIVATE).edit()
+        buttons.forEachIndexed{ index, _ -> storeButton(editor, index) }
+        editor.apply()
+    }
+
+    private fun saveAudio(uri: Uri, index: Int) {
+        val soundId = buttons[index].soundId
+        deleteFile("audio" + soundId)
+        val newSoundId = System.currentTimeMillis()
+        buttons[index].soundId = newSoundId
+        grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val output = BufferedOutputStream(openFileOutput("audio" + newSoundId, Context.MODE_PRIVATE))
+        val input = BufferedInputStream(contentResolver.openInputStream(uri))
+        try {
+            val buf = ByteArray(1024)
+            input.read(buf)
+            do {
+                output.write(buf)
+            } while (input.read(buf) != -1)
+        } finally {
+            input.close()
+            output.close()
         }
     }
 
