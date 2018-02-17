@@ -122,6 +122,7 @@ class MainActivity : AppCompatActivity() {
         val index = parent.indexOfChild(soundButton)
         intent.putExtra("index", index)
         intent.putExtra("caption", soundButton.textView.text)
+        intent.putExtra("fileName", soundButton.fileName)
         startActivityForResult(intent, 1234)
     }
 
@@ -138,6 +139,8 @@ class MainActivity : AppCompatActivity() {
             soundButton.textView.text = caption
             val soundId = preferences.getLong("soundId" + index, 0)
             soundButton.soundId = soundId
+            val fileName = preferences.getString("fileName" + index, "")
+            soundButton.fileName = fileName
         }
     }
 
@@ -162,18 +165,23 @@ class MainActivity : AppCompatActivity() {
                         textView.setText(caption)
                     }
                     val uri = data.getParcelableExtra<Uri>("uri")
-                    savePreferences(caption, uri, index)
+                    val fileName = data.getStringExtra("fileName")
+                    if (fileName != null) {
+                        button.fileName = fileName
+                    }
+                    savePreferences(uri, index)
                 }
             }
         }
     }
 
-    private fun savePreferences(caption: String, uri: Uri?, index: Int) {
+    private fun savePreferences(uri: Uri?, index: Int) {
         if (index > -1 && index < buttons.size) {
             val textView = buttons[index].textView
             val soundId = buttons[index].soundId
             val editor = getPreferences(Context.MODE_PRIVATE).edit()
             editor.putString("caption" + index, textView.text.toString())
+            editor.putString("fileName" + index, buttons[index].fileName)
             editor.commit()
 
             uri?.let { uri ->

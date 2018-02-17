@@ -9,12 +9,18 @@ import android.widget.Button
 import android.widget.EditText
 import android.provider.OpenableColumns
 import android.widget.TextView
+import kotlinx.android.synthetic.main.activity_edit.*
 
 class EditActivity : AppCompatActivity() {
 
     private fun displayFile() {
         val fileTextView = findViewById<TextView>(R.id.fileTextView)
-        currentUri?.let { uri -> fileTextView.setText(getFileName(uri)) }
+        currentUri?.let { uri ->
+            fileTextView.setText(getFileName(uri))
+            if (captionEditText.text.isBlank()) {
+                captionEditText.setText(fileTextView.text)
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,11 +30,14 @@ class EditActivity : AppCompatActivity() {
         val captionEditText = findViewById<EditText>(R.id.captionEditText)
         captionEditText.setText(intent.getStringExtra("caption"))
 
+        fileTextView.setText(intent.getStringExtra("fileName"))
+
         val okButton = findViewById<Button>(R.id.okButton)
         okButton.setOnClickListener {
             val data = Intent()
             data.putExtra("index", intent.getIntExtra("index", -1))
             data.putExtra("caption", captionEditText.text.toString())
+            data.putExtra("fileName", fileTextView.text.toString())
             if (currentUri != null) {
                 data.putExtra("uri", currentUri)
             }

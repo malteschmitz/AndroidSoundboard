@@ -14,6 +14,7 @@ class SoundButton : FrameLayout {
     val textView: TextView
     val objectAnimator: ObjectAnimator
     var soundId: Long = 0
+    var fileName: String = ""
 
     constructor(context: Context) : super(context) {
         View.inflate(context, R.layout.layout_button, this)
