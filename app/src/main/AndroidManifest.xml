@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditActivity"></activity>
+        <service android:name=".PlayerService"></service>
     </application>
 
 </manifest>

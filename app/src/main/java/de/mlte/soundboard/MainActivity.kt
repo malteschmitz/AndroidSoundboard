@@ -1,11 +1,11 @@
 package de.mlte.soundboard
 
+import android.animation.Animator
 import android.animation.ValueAnimator
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
-import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -17,13 +17,34 @@ import android.view.animation.LinearInterpolator
 import android.widget.GridLayout
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import android.content.ComponentName
+import android.os.IBinder
+import android.content.ServiceConnection
+import android.animation.AnimatorListenerAdapter
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
     private val buttons = ArrayList<SoundButton>()
-    private var player: MediaPlayer? = null
-    private var playing = false
     private var playingButton: SoundButton? = null
     private var playingAnimator: ValueAnimator? = null
+
+    private var playerService: PlayerService? = null
+
+    private val playerServiceConnection = object : ServiceConnection {
+
+        override fun onServiceConnected(className: ComponentName,
+                                        binder: IBinder) {
+            val binder = binder as PlayerService.PlayerServiceBinder
+            val service = binder.service
+            playerService = service
+            playingButton?.let{ button -> startAnimator(service, button) }
+        }
+
+        override fun onServiceDisconnected(className: ComponentName) {
+            playerService = null
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,34 +58,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle?) {
-        if (playing) {
-            player?.let { mp ->
-                if (mp.isPlaying) {
-                    outState?.putBoolean("playing", true)
-                    outState?.putInt("playingPosition", mp.currentPosition)
-                    val parent = findViewById<GridLayout>(R.id.grid_layout)
-                    val index = parent.indexOfChild(playingButton)
-                    outState?.putInt("playingIndex", index)
-                }
+        playerService?.let { service ->
+            if (service.playing) {
+                val parent = findViewById<GridLayout>(R.id.grid_layout)
+                val index = parent.indexOfChild(playingButton)
+                outState?.putInt("playing", index)
             }
         }
 
         super.onSaveInstanceState(outState)
-    }
-
-    override fun onDestroy() {
-        if (playing) {
-            player?.let { mp ->
-                if (mp.isPlaying) {
-                    mp.stop()
-                }
-                mp.reset()
-                mp.release()
-            }
-            playingAnimator?.cancel()
-        }
-
-        super.onDestroy()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
@@ -75,12 +77,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         savedInstanceState?.let { state ->
-            if (state.getBoolean("playing")) {
-                val button = buttons[state.getInt("playingIndex")]
-                val position = state.getInt("playingPosition")
-                startPlaying(button, position)
+            val index = state.getInt("playing", -1)
+            if (index > -1) {
+                playingButton = buttons[index]
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val intent = Intent(this, PlayerService::class.java)
+        startService(intent)
+        bindService(intent, playerServiceConnection, 0)
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        if (playerService?.playing != true) {
+            val intent = Intent(this, PlayerService::class.java)
+            stopService(intent)
+        }
+
+        unbindService(playerServiceConnection)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -108,7 +128,7 @@ class MainActivity : AppCompatActivity() {
     private fun saveNumButtons() {
         val editor = getPreferences(Context.MODE_PRIVATE).edit()
         editor.putInt("numButtons", buttons.size)
-        editor.commit()
+        editor.apply()
     }
 
     private fun organizeButtons() {
@@ -135,6 +155,35 @@ class MainActivity : AppCompatActivity() {
         parent.columnCount = columns
     }
 
+    private fun playButton(soundButton: SoundButton) {
+        playerService?.let{ service ->
+            playingButton = soundButton
+            service.start(soundButton.soundId)
+            startAnimator(service, soundButton)
+        }
+    }
+
+    private fun startAnimator(service: PlayerService, button: SoundButton) {
+        playingAnimator?.cancel()
+        if (service.playing) {
+            val bar = button.progressBar
+            val animator = ValueAnimator.ofInt(bar.max * service.currentPosition / service.duration, bar.max)
+            animator.interpolator = LinearInterpolator()
+            animator.addUpdateListener {
+                bar.progress = animator.animatedValue as Int
+            }
+            animator.addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    bar.progress = 0
+                }
+            })
+
+            animator.duration = service.duration.toLong() - service.currentPosition
+            animator.start()
+            playingAnimator = animator
+        }
+    }
+
     private fun addButton(soundButton: SoundButton) {
         buttons.add(soundButton)
 
@@ -142,21 +191,11 @@ class MainActivity : AppCompatActivity() {
         parent.addView(soundButton)
 
         soundButton.textView.setOnClickListener {
-            if (playing) {
-                player?.let { mp ->
-                    if (mp.isPlaying) {
-                        mp.stop()
-                    }
-                    mp.reset()
-                    mp.release()
-                }
-                playingButton?.let { button ->
-                    button.progressBar.progress = 0
-                }
-                playing = false
+            if (playerService?.playing == true) {
+                playerService?.stop()
                 playingAnimator?.cancel()
             } else {
-                startPlaying(soundButton, 0)
+                playButton(soundButton)
             }
         }
 
@@ -166,36 +205,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun startPlaying(soundButton: SoundButton, position: Int) {
-        val file = getFileStreamPath("audio" + soundButton.soundId)
-        if (file.exists()) {
-            val mp = MediaPlayer.create(this, Uri.fromFile(file))
-            mp.setOnCompletionListener {
-                playingAnimator?.cancel()
-                soundButton.progressBar.progress = 0
-                mp.reset()
-                mp.release()
-                playing = false
-            }
-            mp.seekTo(position)
-            mp.start()
-            player = mp
-            playing = true
-            playingButton = soundButton
-
-            val bar = soundButton.progressBar
-            val animator = ValueAnimator.ofInt(bar.max * position / mp.duration, bar.max)
-            animator.interpolator = LinearInterpolator()
-            animator.addUpdateListener {
-                bar.progress = animator.animatedValue as Int
-            }
-            animator.duration = mp.duration.toLong() - position
-            animator.start()
-            playingAnimator = animator
-        }
-    }
-
     private fun editButton(soundButton: SoundButton) {
+        playerService?.stop()
+        playingAnimator?.cancel()
         val intent = Intent(baseContext, EditActivity::class.java)
         val parent = findViewById<GridLayout>(R.id.grid_layout)
         val index = parent.indexOfChild(soundButton)
@@ -262,23 +274,23 @@ class MainActivity : AppCompatActivity() {
             val editor = getPreferences(Context.MODE_PRIVATE).edit()
             editor.putString("caption" + index, textView.text.toString())
             editor.putString("fileName" + index, buttons[index].fileName)
-            editor.commit()
+            editor.apply()
 
-            uri?.let { uri ->
+            uri?.let { u ->
                 deleteFile("audio" + soundId)
                 val newSoundId = System.currentTimeMillis()
                 buttons[index].soundId = newSoundId
                 editor.putLong("soundId" + index, newSoundId)
                 editor.commit()
-                grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                grantUriPermission(packageName, u, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 val output = BufferedOutputStream(openFileOutput("audio" + newSoundId, Context.MODE_PRIVATE))
-                val input = BufferedInputStream(contentResolver.openInputStream(uri))
+                val input = BufferedInputStream(contentResolver.openInputStream(u))
                 try {
                     val buf = ByteArray(1024)
                     input.read(buf)
                     do {
                         output.write(buf)
-                    } while (input.read(buf) !== -1)
+                    } while (input.read(buf) != -1)
                 } finally {
                     input.close()
                     output.close()
