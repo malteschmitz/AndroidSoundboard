@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
                     addButton(button)
                     saveNumButtons()
                     organizeButtons()
+                    editButton(button)
                     return true
                 }
             }
@@ -110,15 +111,18 @@ class MainActivity : AppCompatActivity() {
         }
 
         soundButton.textView.setOnLongClickListener {
-            val intent = Intent(baseContext, EditActivity::class.java)
-            val parent = findViewById<GridLayout>(R.id.grid_layout)
-            val index = parent.indexOfChild(soundButton)
-            intent.putExtra("index", index)
-            intent.putExtra("caption", soundButton.textView.text)
-            startActivityForResult(intent, 1234)
-
+            editButton(soundButton)
             true
         }
+    }
+
+    private fun editButton(soundButton: SoundButton) {
+        val intent = Intent(baseContext, EditActivity::class.java)
+        val parent = findViewById<GridLayout>(R.id.grid_layout)
+        val index = parent.indexOfChild(soundButton)
+        intent.putExtra("index", index)
+        intent.putExtra("caption", soundButton.textView.text)
+        startActivityForResult(intent, 1234)
     }
 
     private fun loadPreferences() {
