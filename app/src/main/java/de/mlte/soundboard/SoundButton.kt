@@ -11,7 +11,7 @@ import android.widget.TextView
 
 class SoundButton : FrameLayout {
     val progressBar: ProgressBar
-    val btn: TextView
+    val textView: TextView
     val objectAnimator: ObjectAnimator
     var soundId: Long = 0
 
@@ -19,7 +19,7 @@ class SoundButton : FrameLayout {
         View.inflate(context, R.layout.layout_button, this)
 
         progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        btn = findViewById<TextView>(R.id.text_view_button)
+        textView = findViewById<TextView>(R.id.text_view_button)
 
         objectAnimator = ObjectAnimator.ofInt(progressBar, "progress", progressBar.getProgress(), 1000)
         objectAnimator.interpolator = LinearInterpolator()

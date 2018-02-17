@@ -15,7 +15,6 @@ import android.widget.GridLayout
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 
-
 class MainActivity : AppCompatActivity() {
     private val buttons = ArrayList<SoundButton>()
     private var player: MediaPlayer? = null
@@ -71,13 +70,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addButton(soundButton: SoundButton) {
-        val index = buttons.size
         buttons.add(soundButton)
 
         val parent = findViewById<GridLayout>(R.id.grid_layout)
         parent.addView(soundButton)
 
-        soundButton.btn.setOnClickListener {
+        soundButton.textView.setOnClickListener {
             if (playing) {
                 player?.let { mp ->
                     if (mp.isPlaying) {
@@ -111,10 +109,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        soundButton.btn.setOnLongClickListener {
+        soundButton.textView.setOnLongClickListener {
             val intent = Intent(baseContext, EditActivity::class.java)
+            val parent = findViewById<GridLayout>(R.id.grid_layout)
+            val index = parent.indexOfChild(soundButton)
             intent.putExtra("index", index)
-            intent.putExtra("caption", soundButton.btn.text)
+            intent.putExtra("caption", soundButton.textView.text)
             startActivityForResult(intent, 1234)
 
             true
@@ -131,7 +131,7 @@ class MainActivity : AppCompatActivity() {
             val soundButton = SoundButton(this)
             addButton(soundButton)
             val caption = preferences.getString("caption" + index, "")
-            soundButton.btn.text = caption
+            soundButton.textView.text = caption
             val soundId = preferences.getLong("soundId" + index, 0)
             soundButton.soundId = soundId
         }
@@ -143,17 +143,19 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == 1234 && resultCode == Activity.RESULT_OK && data != null) {
             val index = data.getIntExtra("index", -1)
             if (index > -1 && index < buttons.size) {
-                val btn = buttons[index].btn
+                val button = buttons[index]
+                val textView = buttons[index].textView
                 if (data.getBooleanExtra("delete", false)) {
                     deleteFile("audio" + buttons[index].soundId)
                     buttons.removeAt(index)
                     val parent = findViewById<GridLayout>(R.id.grid_layout)
-                    parent.removeView(btn)
+                    parent.removeView(button)
+                    saveNumButtons()
                     organizeButtons()
                 } else {
                     val caption = data.getStringExtra("caption")
                     if (caption != null) {
-                        btn.setText(caption)
+                        textView.setText(caption)
                     }
                     val uri = data.getParcelableExtra<Uri>("uri")
                     savePreferences(caption, uri, index)
@@ -164,10 +166,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun savePreferences(caption: String, uri: Uri?, index: Int) {
         if (index > -1 && index < buttons.size) {
-            val btn = buttons[index].btn
+            val textView = buttons[index].textView
             val soundId = buttons[index].soundId
             val editor = getPreferences(Context.MODE_PRIVATE).edit()
-            editor.putString("caption" + index, btn.text.toString())
+            editor.putString("caption" + index, textView.text.toString())
             editor.commit()
 
             uri?.let { uri ->
