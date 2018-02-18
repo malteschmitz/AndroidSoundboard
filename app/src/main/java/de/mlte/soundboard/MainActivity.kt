@@ -18,7 +18,6 @@ import java.io.BufferedOutputStream
 import android.os.IBinder
 import android.animation.AnimatorListenerAdapter
 import android.content.*
-import android.util.Log
 
 class MainActivity : AppCompatActivity() {
     private val buttons = ArrayList<SoundButton>()
@@ -111,9 +110,6 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.action_add_new -> {
                     val button = SoundButton(this)
-                    addButton(button)
-                    saveNumButtons()
-                    organizeButtons()
                     editButton(button)
                     return true
                 }
@@ -181,7 +177,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun addButton(soundButton: SoundButton) {
+    private fun createButton(): SoundButton {
+        val soundButton = SoundButton(this)
         buttons.add(soundButton)
 
         val parent = findViewById<GridLayout>(R.id.grid_layout)
@@ -200,6 +197,8 @@ class MainActivity : AppCompatActivity() {
             editButton(soundButton)
             true
         }
+
+        return soundButton
     }
 
     private fun editButton(soundButton: SoundButton) {
@@ -221,8 +220,7 @@ class MainActivity : AppCompatActivity() {
         val preferences = getPreferences(Context.MODE_PRIVATE)
         val numButtons = preferences.getInt("numButtons", 0)
         for (index in 0 until numButtons) {
-            val soundButton = SoundButton(this)
-            addButton(soundButton)
+            val soundButton = createButton()
             val caption = preferences.getString("caption" + index, "")
             soundButton.textView.text = caption
             val soundId = preferences.getLong("soundId" + index, 0)
@@ -232,35 +230,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun deleteButton(index: Int) {
+        val button = buttons[index]
+        deleteFile("audio" + button.soundId)
+        buttons.removeAt(index)
+        val parent = findViewById<GridLayout>(R.id.grid_layout)
+        parent.removeView(button)
+        saveNumButtons()
+        saveAllButtons()
+        organizeButtons()
+    }
+
+    private fun updateButton(index: Int, data: Intent) {
+        val button = buttons[index]
+        val textView = button.textView
+        val caption = data.getStringExtra("caption")
+        if (caption != null) {
+            textView.text = caption
+        }
+        val fileName = data.getStringExtra("fileName")
+        if (fileName != null) {
+            button.fileName = fileName
+        }
+        val uri = data.getParcelableExtra<Uri?>("uri")
+        uri?.let{ u -> saveAudio(u, index) }
+        saveButton(index)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == 1234 && resultCode == Activity.RESULT_OK && data != null) {
             val index = data.getIntExtra("index", -1)
-            if (index > -1 && index < buttons.size) {
-                val button = buttons[index]
-                val textView = buttons[index].textView
-                if (data.getBooleanExtra("delete", false)) {
-                    deleteFile("audio" + buttons[index].soundId)
-                    buttons.removeAt(index)
-                    val parent = findViewById<GridLayout>(R.id.grid_layout)
-                    parent.removeView(button)
-                    saveNumButtons()
-                    saveAllButtons()
-                    organizeButtons()
-                } else {
-                    val caption = data.getStringExtra("caption")
-                    if (caption != null) {
-                        textView.text = caption
-                    }
-                    val uri = data.getParcelableExtra<Uri?>("uri")
-                    val fileName = data.getStringExtra("fileName")
-                    if (fileName != null) {
-                        button.fileName = fileName
-                    }
-                    uri?.let{ u -> saveAudio(u, index) }
-                    saveButton(index)
-                }
+            if (index < 0) {
+                createButton()
+                saveNumButtons()
+                organizeButtons()
+                updateButton(buttons.size - 1, data)
+            } else if (data.getBooleanExtra("delete", false)) {
+                deleteButton(index)
+            } else {
+                updateButton(index, data)
             }
         }
     }

@@ -43,7 +43,7 @@ class EditActivity : AppCompatActivity() {
         captionEditText.setText(intent.getStringExtra("caption"))
 
         val fileName = intent.getStringExtra("fileName")
-        if (fileName.isEmpty()) fileTextView.text = "No file selected" else fileTextView.text = fileName
+        if (fileName.isEmpty()) fileTextView.text = "<No file selected>" else fileTextView.text = fileName
 
         val selectButton = findViewById<Button>(R.id.selectButton)
         selectButton.setOnClickListener {
@@ -55,9 +55,13 @@ class EditActivity : AppCompatActivity() {
         }
     }
 
+    private fun isCreate() = intent.getIntExtra("index", -1) < 0
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.edit, menu)
+        menuInflater.inflate(R.menu.edit, menu)
+        if (isCreate()) {
+            menu?.run{ findItem(R.id.delete).setVisible(false) }
+        }
         return true
     }
 
