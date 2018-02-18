@@ -53,6 +53,13 @@ class EditActivity : AppCompatActivity() {
 
             startActivityForResult(intent, 123)
         }
+
+        val hintTextView = findViewById<TextView>(R.id.hintTextView)
+        if (isCreate()) {
+            hintTextView.text = "Touch and hold on the newly created sound button to edit any of these settings later."
+        } else {
+            hintTextView.text = "Use the menu if you want to delete this sound button."
+        }
     }
 
     private fun isCreate() = intent.getIntExtra("index", -1) < 0

@@ -51,4 +51,13 @@
         android:layout_marginLeft="16dp"
         android:layout_toLeftOf="@id/selectButton"/>
 
+    <TextView
+        android:id="@+id/hintTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/selectButton"
+        android:layout_alignStart="@+id/fileTextView"
+        android:layout_below="@+id/selectButton"
+        android:layout_marginTop="23dp"/>
+
 </RelativeLayout>
